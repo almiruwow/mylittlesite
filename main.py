@@ -1,36 +1,32 @@
 from flask import Flask
-from classes.return_result import Result
-import json
+from load_json_data import json_d
 
-
-def json_d():
-    with open("candidates.json", "r", encoding="utf-8") as f:
-        text_json = json.load(f)
-    return text_json
-
-
+text_json = json_d()
 app = Flask(__name__)
-json = Result(json_d())
 
 
 @app.route("/")
 def page_index():
-    return json.home_page()
+    str_ = ''
+    for dict_ in text_json:
+        str_ += dict_['name'] + '\n' + str(dict_['id']) + '\n' + dict_['skills'] + '\n' + '\n'
+    return f"<pre>{str_}</pre>"
 
 
 @app.route("/candidate/<can>/")
 def page_profile(can):
-    return json.candidate(can)
+    return_candidate = text_json[int(can) - 1]
+    return f'<img src={return_candidate["picture"]}>' + f'<pre>{return_candidate["name"]}\n{return_candidate["id"]}\n{return_candidate["skills"]}</pre>'
 
 
 @app.route("/skill/<cand_skills>/")
 def page_feed(cand_skills):
-    return json.skills(cand_skills)
+    str_ = ''
+    for dict_ in text_json:
+        new_dict = dict_["skills"].lower().split(', ')
+        if cand_skills in new_dict:
+            str_ += dict_['name'] + '\n' + str(dict_['id']) + '\n' + dict_['skills'] + '\n' + '\n'
+    return f"<pre>{str_}</pre>"
 
 
-if __name__ == "__main__":
-    app.run()
-
-
-
-
+app.run(host='0.0.0.0', port=8000)
